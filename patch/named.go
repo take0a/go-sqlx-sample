@@ -1,4 +1,4 @@
-package sqlx
+package patch
 
 // Named Query Support
 //
@@ -19,132 +19,136 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
+	"sync"
 	"unicode"
+	"unicode/utf8"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
 
-// NamedStmt is a prepared statement that executes named queries.  Prepare it
-// how you would execute a NamedQuery, but pass in a struct or map when executing.
-type NamedStmt struct {
-	Params      []string
-	QueryString string
-	Stmt        *Stmt
-}
+// // NamedStmt is a prepared statement that executes named queries.  Prepare it
+// // how you would execute a NamedQuery, but pass in a struct or map when executing.
+// type NamedStmt struct {
+// 	Params      []string
+// 	QueryString string
+// 	Stmt        *Stmt
+// }
 
-// Close closes the named statement.
-func (n *NamedStmt) Close() error {
-	return n.Stmt.Close()
-}
+// // Close closes the named statement.
+// func (n *NamedStmt) Close() error {
+// 	return n.Stmt.Close()
+// }
 
-// Exec executes a named statement using the struct passed.
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Exec(arg interface{}) (sql.Result, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
-	if err != nil {
-		return *new(sql.Result), err
-	}
-	return n.Stmt.Exec(args...)
-}
+// // Exec executes a named statement using the struct passed.
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) Exec(arg interface{}) (sql.Result, error) {
+// 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+// 	if err != nil {
+// 		return *new(sql.Result), err
+// 	}
+// 	return n.Stmt.Exec(args...)
+// }
 
-// Query executes a named statement using the struct argument, returning rows.
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Query(arg interface{}) (*sql.Rows, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
-	if err != nil {
-		return nil, err
-	}
-	return n.Stmt.Query(args...)
-}
+// // Query executes a named statement using the struct argument, returning rows.
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) Query(arg interface{}) (*sql.Rows, error) {
+// 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return n.Stmt.Query(args...)
+// }
 
-// QueryRow executes a named statement against the database.  Because sqlx cannot
-// create a *sql.Row with an error condition pre-set for binding errors, sqlx
-// returns a *sqlx.Row instead.
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRow(arg interface{}) *Row {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
-	if err != nil {
-		return &Row{err: err}
-	}
-	return n.Stmt.QueryRowx(args...)
-}
+// // QueryRow executes a named statement against the database.  Because sqlx cannot
+// // create a *sql.Row with an error condition pre-set for binding errors, sqlx
+// // returns a *sqlx.Row instead.
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) QueryRow(arg interface{}) *Row {
+// 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+// 	if err != nil {
+// 		return &Row{err: err}
+// 	}
+// 	return n.Stmt.QueryRowx(args...)
+// }
 
-// MustExec execs a NamedStmt, panicing on error
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) MustExec(arg interface{}) sql.Result {
-	res, err := n.Exec(arg)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
+// // MustExec execs a NamedStmt, panicing on error
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) MustExec(arg interface{}) sql.Result {
+// 	res, err := n.Exec(arg)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return res
+// }
 
-// Queryx using this NamedStmt
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Queryx(arg interface{}) (*Rows, error) {
-	r, err := n.Query(arg)
-	if err != nil {
-		return nil, err
-	}
-	return &Rows{Rows: r, Mapper: n.Stmt.Mapper, unsafe: isUnsafe(n)}, err
-}
+// // Queryx using this NamedStmt
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) Queryx(arg interface{}) (*Rows, error) {
+// 	r, err := n.Query(arg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Rows{Rows: r, Mapper: n.Stmt.Mapper, unsafe: isUnsafe(n)}, err
+// }
 
-// QueryRowx this NamedStmt.  Because of limitations with QueryRow, this is
-// an alias for QueryRow.
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRowx(arg interface{}) *Row {
-	return n.QueryRow(arg)
-}
+// // QueryRowx this NamedStmt.  Because of limitations with QueryRow, this is
+// // an alias for QueryRow.
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) QueryRowx(arg interface{}) *Row {
+// 	return n.QueryRow(arg)
+// }
 
-// Select using this NamedStmt
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Select(dest interface{}, arg interface{}) error {
-	rows, err := n.Queryx(arg)
-	if err != nil {
-		return err
-	}
-	// if something happens here, we want to make sure the rows are Closed
-	defer rows.Close()
-	return scanAll(rows, dest, false)
-}
+// // Select using this NamedStmt
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) Select(dest interface{}, arg interface{}) error {
+// 	rows, err := n.Queryx(arg)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// if something happens here, we want to make sure the rows are Closed
+// 	defer rows.Close()
+// 	return scanAll(rows, dest, false)
+// }
 
-// Get using this NamedStmt
-// Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Get(dest interface{}, arg interface{}) error {
-	r := n.QueryRowx(arg)
-	return r.scanAny(dest, false)
-}
+// // Get using this NamedStmt
+// // Any named placeholder parameters are replaced with fields from arg.
+// func (n *NamedStmt) Get(dest interface{}, arg interface{}) error {
+// 	r := n.QueryRowx(arg)
+// 	return r.scanAny(dest, false)
+// }
 
-// Unsafe creates an unsafe version of the NamedStmt
-func (n *NamedStmt) Unsafe() *NamedStmt {
-	r := &NamedStmt{Params: n.Params, Stmt: n.Stmt, QueryString: n.QueryString}
-	r.Stmt.unsafe = true
-	return r
-}
+// // Unsafe creates an unsafe version of the NamedStmt
+// func (n *NamedStmt) Unsafe() *NamedStmt {
+// 	r := &NamedStmt{Params: n.Params, Stmt: n.Stmt, QueryString: n.QueryString}
+// 	r.Stmt.unsafe = true
+// 	return r
+// }
 
-// A union interface of preparer and binder, required to be able to prepare
-// named statements (as the bindtype must be determined).
-type namedPreparer interface {
-	Preparer
-	binder
-}
+// // A union interface of preparer and binder, required to be able to prepare
+// // named statements (as the bindtype must be determined).
+// type namedPreparer interface {
+// 	Preparer
+// 	binder
+// }
 
-func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
-	bindType := BindType(p.DriverName())
-	q, args, err := compileNamedQuery([]byte(query), bindType)
-	if err != nil {
-		return nil, err
-	}
-	stmt, err := Preparex(p, q)
-	if err != nil {
-		return nil, err
-	}
-	return &NamedStmt{
-		QueryString: q,
-		Params:      args,
-		Stmt:        stmt,
-	}, nil
-}
+// func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
+// 	bindType := BindType(p.DriverName())
+// 	q, args, err := compileNamedQuery([]byte(query), bindType)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	stmt, err := Preparex(p, q)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &NamedStmt{
+// 		QueryString: q,
+// 		Params:      args,
+// 		Stmt:        stmt,
+// 	}, nil
+// }
 
 // convertMapStringInterface attempts to convert v to map[string]interface{}.
 // Unlike v.(map[string]interface{}), this function works on named types that
@@ -333,9 +337,11 @@ func compileNamedQuery(qs []byte, bindType int) (query string, names []string, e
 	rebound := make([]byte, 0, len(qs))
 
 	inName := false
+	inRune := false
 	last := len(qs) - 1
 	currentVar := 1
 	name := make([]byte, 0, 10)
+	var oneRune []byte
 
 	for i, b := range qs {
 		// a ':' while we're in a name is an error
@@ -355,6 +361,22 @@ func compileNamedQuery(qs []byte, bindType int) (query string, names []string, e
 			rebound = append(rebound, ':', '=')
 			inName = false
 			continue
+			// if we're in a rune
+		} else if inRune {
+			oneRune = append(oneRune, b)
+			// if next character is a first byte of utf8
+			if i == last || utf8.RuneStart(qs[i+1]) {
+				inRune = false
+				r, size := utf8.DecodeRune(oneRune)
+				if size == len(oneRune) && unicode.IsOneOf(allowedBindRunes, r) {
+					name = append(name, oneRune...)
+				}
+			}
+			// if we're in a name, and this is a multi-byte character, continue
+		} else if inName && i != last && !utf8.RuneStart(qs[i+1]) {
+			inRune = true
+			oneRune = []byte{}
+			oneRune = append(oneRune, b)
 			// if we're in a name, and this is an allowed character, continue
 		} else if inName && (unicode.IsOneOf(allowedBindRunes, rune(b)) || b == '_' || b == '.') && i != last {
 			// append the byte to the name if we are in a name and not on the last byte
@@ -438,7 +460,7 @@ func bindNamedMapper(bindType int, query string, arg interface{}, m *reflectx.Ma
 // NamedQuery binds a named query and then runs Query on the result using the
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]interface{} types.
-func NamedQuery(e Ext, query string, arg interface{}) (*Rows, error) {
+func NamedQuery(e sqlx.Ext, query string, arg interface{}) (*sqlx.Rows, error) {
 	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err
@@ -449,10 +471,54 @@ func NamedQuery(e Ext, query string, arg interface{}) (*Rows, error) {
 // NamedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
-func NamedExec(e Ext, query string, arg interface{}) (sql.Result, error) {
+func NamedExec(e sqlx.Ext, query string, arg interface{}) (sql.Result, error) {
 	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err
 	}
 	return e.Exec(q, args...)
+}
+
+// NameMapper is used to map column names to struct field names.  By default,
+// it uses strings.ToLower to lowercase struct field names.  It can be set
+// to whatever you want, but it is encouraged to be set before sqlx is used
+// as name-to-field mappings are cached after first use on a type.
+var NameMapper = strings.ToLower
+var origMapper = reflect.ValueOf(NameMapper)
+
+// Rather than creating on init, this is created when necessary so that
+// importers have time to customize the NameMapper.
+var mpr *reflectx.Mapper
+
+// mprMu protects mpr.
+var mprMu sync.Mutex
+
+// mapper returns a valid mapper using the configured NameMapper func.
+func mapper() *reflectx.Mapper {
+	mprMu.Lock()
+	defer mprMu.Unlock()
+
+	if mpr == nil {
+		mpr = reflectx.NewMapperFunc("db", NameMapper)
+	} else if origMapper != reflect.ValueOf(NameMapper) {
+		// if NameMapper has changed, create a new mapper
+		mpr = reflectx.NewMapperFunc("db", NameMapper)
+		origMapper = reflect.ValueOf(NameMapper)
+	}
+	return mpr
+}
+
+func mapperFor(i interface{}) *reflectx.Mapper {
+	switch i := i.(type) {
+	case sqlx.DB:
+		return i.Mapper
+	case *sqlx.DB:
+		return i.Mapper
+	case sqlx.Tx:
+		return i.Mapper
+	case *sqlx.Tx:
+		return i.Mapper
+	default:
+		return mapper()
+	}
 }
