@@ -22,9 +22,9 @@ type S日ほンｺﾞ表 struct {
 	FＲｅｔｓｕ５ sql.NullString `db:"Ｒｅｔｓｕ５"` // xml
 }
 
-// Key は、データ型テストテーブルのキー
+// Key は、日本語テストテーブルのキー
 type Key struct {
-	F列１ string `db:"col1"`
+	Col01 string `db:"col1"`
 }
 
 func main() {
