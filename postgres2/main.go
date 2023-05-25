@@ -9,8 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-
-	"github.com/take0a/go-sqlx-sample/patch"
 )
 
 // S日ほンｺﾞ表 は、日本語テストテーブル
@@ -43,7 +41,7 @@ func main() {
 		FＲｅｔｓｕ５: sql.NullString{String: "<xml /><ルートノード></ルートノード>", Valid: true},
 	}
 
-	_, err = patch.NamedExec(db, `
+	_, err = db.NamedExec(`
 		INSERT INTO 日ほンｺﾞ表 (
 			列１, れつ2, レツ３, ﾚﾂ4, Ｒｅｔｓｕ５
 		) VALUES (

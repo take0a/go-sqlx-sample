@@ -11,6 +11,8 @@ require (
 	github.com/sijms/go-ora/v2 v2.7.6
 )
 
+replace github.com/jmoiron/sqlx => ../sqlx // github.com/roboninc/sqlx
+
 require (
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
