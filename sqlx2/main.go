@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/roboninc/sqlx"
 )
 
 // Customer は、顧客

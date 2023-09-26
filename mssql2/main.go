@@ -7,8 +7,8 @@ import (
 	"reflect"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/microsoft/go-mssqldb"
+	"github.com/roboninc/sqlx"
 )
 
 // S日ほンｺﾞ表 は、日本語テストテーブル

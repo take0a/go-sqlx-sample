@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jmoiron/sqlx"
+	"github.com/roboninc/sqlx"
 	ora "github.com/sijms/go-ora/v2"
 )
 

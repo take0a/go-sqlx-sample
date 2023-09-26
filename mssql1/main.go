@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/microsoft/go-mssqldb"
+	"github.com/roboninc/sqlx"
 )
 
 // Datatypes は、データ型テストテーブル

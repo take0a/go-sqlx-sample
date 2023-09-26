@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/go-cmp/cmp"
-	"github.com/jmoiron/sqlx"
+	"github.com/roboninc/sqlx"
 )
 
 // S日ほンｺﾞ表 は、日本語テストテーブル
