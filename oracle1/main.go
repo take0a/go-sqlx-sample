@@ -47,7 +47,7 @@ type Key struct {
 }
 
 func main() {
-	sqlx.BindDriver("oracle", sqlx.NAMED)
+	// sqlx.BindDriver("oracle", sqlx.NAMED)
 
 	dsn := os.Getenv("DSN")
 	db, err := sqlx.Open("oracle", dsn)
