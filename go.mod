@@ -5,13 +5,13 @@ go 1.18
 require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-cmp v0.5.9
-	github.com/roboninc/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
 	github.com/microsoft/go-mssqldb v0.21.0
+	github.com/roboninc/sqlx v1.4.0
 	github.com/sijms/go-ora/v2 v2.7.6
 )
 
-replace github.com/roboninc/sqlx => ../sqlx
+// replace github.com/roboninc/sqlx => ../sqlx
 
 require (
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
