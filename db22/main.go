@@ -13,9 +13,11 @@ import (
 
 // S日ほンｺﾞ表 は、日本語テストテーブル
 type S日ほンｺﾞ表 struct {
-	F列１  sql.NullString `db:"列１"`  // char(30)
-	Fれつ2 sql.NullString `db:"れつ2"` // varchar(30)
-	Fレツ３ sql.NullString `db:"レツ３"` // clob(30)
+	F列１     sql.NullString `db:"列１"`     // char(30)
+	Fれつ2    sql.NullString `db:"れつ2"`    // varchar(30)
+	Fレツ３    sql.NullString `db:"レツ３"`    // clob(30)
+	Fﾚﾂ4    sql.NullString `db:"ﾚﾂ4"`    // graphic(10)
+	FＲｅｔｓｕ５ sql.NullString `db:"ＲＥＴＳＵ５"` // vargraphic(10)
 }
 
 // Key は、日本語テストテーブルのキー
@@ -37,13 +39,15 @@ func main() {
 		F列１:  sql.NullString{String: "ｺﾃｲ長文字列         ", Valid: true},
 		Fれつ2: sql.NullString{String: "ｶﾍﾝ長文字列", Valid: true},
 		// Fレツ３: sql.NullString{String: "あぁアｱｶﾞＡａ漢〇㈱ー～―‐－", Valid: true}, // clob は日本語NGみたい
+		Fﾚﾂ4:    sql.NullString{String: "ｺﾃｲ長文字列　　　", Valid: true},
+		FＲｅｔｓｕ５: sql.NullString{String: "あぁアｱｶﾞＡａ漢〇€㈱ー～―‐－", Valid: true},
 	}
 
 	_, err = db.NamedExec(`
 		INSERT INTO 日ほンｺﾞ表 (
-			列１, れつ2, レツ３
+			列１, れつ2, レツ３, ﾚﾂ4, ＲＥＴＳＵ５
 		) VALUES (
-			:列１, :れつ2, :レツ３
+			:列１, :れつ2, :レツ３, :ﾚﾂ4, :ＲＥＴＳＵ５
 		)`,
 		src,
 	)
@@ -54,7 +58,7 @@ func main() {
 	dst := S日ほンｺﾞ表{}
 	query, args, err := db.BindNamed(`
 		SELECT 
-			列１, れつ2, レツ３
+			列１, れつ2, レツ３, ﾚﾂ4, ＲＥＴＳＵ５
 		FROM 日ほンｺﾞ表 
 		WHERE 列１ = :col01`,
 		key,

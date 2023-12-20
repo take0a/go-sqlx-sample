@@ -21,7 +21,16 @@
 --     c19 boolean
 -- ) ccsid unicode
 
---  db2cli execsql -dsn SAMPLE -inputsql create_table.sql -statementdelimiter ';'
+-- db2cli.ini
+-- [SAMPLE]
+-- HOSTNAME=localhost
+-- DATABASE=SAMPLE
+-- PORT=50000
+-- UID=db2inst1
+-- PWD=password
+
+-- db2cli execsql -dsn SAMPLE -inputsql create_table.sql -statementdelimiter ';'
+drop table datatypes;
 create table datatypes (
     col01 int NOT NULL, 
     col02 SMALLINT, 
@@ -42,5 +51,10 @@ create table datatypes (
     col17 timestamp, 
     col18 blob(10), 
     col19 boolean,
+    col20 graphic(10),
+    col21 vargraphic(10),
+    col22 binary(10),
+    col23 varbinary(10),
+    col24 xml,
     CONSTRAINT pk_datatypes PRIMARY KEY(col01)
 ) ccsid unicode;

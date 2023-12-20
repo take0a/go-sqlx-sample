@@ -22,9 +22,12 @@
 -- ) ccsid unicode
 
 --  db2cli execsql -dsn SAMPLE -inputsql create_table.sql -statementdelimiter ';'
+drop table 日ほンｺﾞ表;
 create table 日ほンｺﾞ表 (
     列１ char(30) NOT NULL, 
     れつ2 varchar(30), 
     レツ３ clob(30),
+    ﾚﾂ4 graphic(10),
+    Ｒｅｔｓｕ５ vargraphic(20),
     CONSTRAINT pk_datatypes PRIMARY KEY(列１)
 ) ccsid unicode;

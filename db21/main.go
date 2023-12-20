@@ -25,14 +25,19 @@ type Datatypes struct {
 	Col09 sql.NullString  `db:"COL09"` // decfloat,
 	Col10 sql.NullString  `db:"COL10"` // char(10),
 	Col11 sql.NullString  `db:"COL11"` // varchar(10),
-	Col12 sql.NullString  `db:"COL12"` // char for bit data,
+	Col12 []byte          `db:"COL12"` // char for bit data,
 	Col13 sql.NullString  `db:"COL13"` // clob(10),
-	Col14 sql.NullString  `db:"COL14"` // dbclob(100),
+	Col14 []byte          `db:"COL14"` // dbclob(100),
 	Col15 sql.NullTime    `db:"COL15"` // date,
 	Col16 sql.NullTime    `db:"COL16"` // time,
 	Col17 sql.NullTime    `db:"COL17"` // timestamp,
 	Col18 []byte          `db:"COL18"` // blob(10),
 	Col19 sql.NullBool    `db:"COL19"` // boolean,
+	Col20 sql.NullString  `db:"COL20"` // graphic(10),
+	Col21 sql.NullString  `db:"COL21"` // vargraphic(10),
+	Col22 []byte          `db:"COL22"` // binary(10),
+	Col23 []byte          `db:"COL23"` // varbinary(10),
+	Col24 sql.NullString  `db:"COL24"` // xml,
 }
 
 // Key は、データ型テストテーブルのキー
@@ -63,23 +68,33 @@ func main() {
 		Col09: sql.NullString{String: "1234567890.12345", Valid: true},
 		Col10: sql.NullString{String: "char(10)  ", Valid: true},
 		Col11: sql.NullString{String: "varchar", Valid: true},
-		// Col12: sql.NullString{String: "31", Valid: true},		input != output
+		// Col12: sql.NullString{String: "31", Valid: true},        input != output
+		Col12: []byte{0x31},
 		Col13: sql.NullString{String: "clob(10)", Valid: true},
 		// Col14: sql.NullString{String: "ａ", Valid: true},		input != output
+		Col14: []byte{0x82, 0xA0}, // あ
 		Col15: sql.NullTime{Time: time.Date(2001, 2, 3, 0, 0, 0, 0, time.UTC), Valid: true},
 		Col16: sql.NullTime{Time: time.Date(0001, 1, 1, 4, 5, 6, 0, time.UTC), Valid: true}, // 0001-01-01固定（SQLServerと同じ）
 		Col17: sql.NullTime{Time: time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC), Valid: true},
 		Col18: []byte{1, 2, 3},
 		Col19: sql.NullBool{Bool: true, Valid: true},
+		Col20: sql.NullString{String: "ぐらふぃっく　　　　", Valid: true},
+		Col21: sql.NullString{String: "グラフィック", Valid: true},
+		Col22: []byte{1, 2, 3, 0, 0, 0, 0, 0, 0, 0},
+		Col23: []byte{1, 2, 3},
+		// Col24: sql.NullString{String: "<xml /><root></root>", Valid: true},  SQL16110N  XML syntax error.
+		// Col24: []byte("<xml /><root></root>"),　　　　　　　　　　　　　　　　　SQL16110N  XML syntax error.
 	}
 
 	_, err = db.NamedExec(`
 		INSERT INTO datatypes (
 			COL01, COL02, COL03, COL04, COL05, COL06, COL07, COL08, COL09, COL10,
-			COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19
+			COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19, COL20,
+			COL21, COL22, COL23, COL24
 		) VALUES (
 			:COL01, :COL02, :COL03, :COL04, :COL05, :COL06, :COL07, :COL08, :COL09, :COL10,
-			:COL11, :COL12, :COL13, :COL14, :COL15, :COL16, :COL17, :COL18, :COL19
+			:COL11, :COL12, :COL13, :COL14, :COL15, :COL16, :COL17, :COL18, :COL19, :COL20,
+			:COL21, :COL22, :COL23, :COL24
 		)`,
 		src,
 	)
@@ -91,7 +106,8 @@ func main() {
 	query, args, err := db.BindNamed(`
 		SELECT 
 			COL01, COL02, COL03, COL04, COL05, COL06, COL07, COL08, COL09, COL10,
-			COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19
+			COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19, COL20,
+			COL21, COL22, COL23, COL24
 		FROM datatypes 
 		WHERE COL01 = :COL01`,
 		key,
