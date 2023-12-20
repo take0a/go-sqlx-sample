@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-cmp v0.5.9
+	github.com/ibmdb/go_ibm_db v0.4.5
 	github.com/lib/pq v1.10.9
 	github.com/microsoft/go-mssqldb v0.21.0
 	github.com/roboninc/sqlx v1.4.0
